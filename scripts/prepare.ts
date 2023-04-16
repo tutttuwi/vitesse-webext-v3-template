@@ -8,11 +8,7 @@ import { isDev, log, port, r } from './utils'
  * Stub index.html to use Vite in development
  */
 async function stubIndexHtml() {
-  const views = [
-    'options',
-    'popup',
-    'background',
-  ]
+  const views = ['options', 'popup', 'background']
 
   for (const view of views) {
     await fs.ensureDir(r(`extension/dist/${view}`))
@@ -25,20 +21,28 @@ async function stubIndexHtml() {
   }
 }
 
+function copyPublicAssets() {
+  fs.copy(r('public/assets'), r('extension/assets'))
+}
+
+function copyPublicLocales() {
+  fs.copy(r('public/_locales'), r('extension/_locales'))
+}
+
 function writeManifest() {
   execSync('npx esno ./scripts/manifest.ts', { stdio: 'inherit' })
 }
 
 writeManifest()
+copyPublicAssets()
+copyPublicLocales()
 
 if (isDev) {
   stubIndexHtml()
-  chokidar.watch(r('src/**/*.html'))
-    .on('change', () => {
-      stubIndexHtml()
-    })
-  chokidar.watch([r('src/manifest.ts'), r('package.json')])
-    .on('change', () => {
-      writeManifest()
-    })
+  chokidar.watch(r('src/**/*.html')).on('change', () => {
+    stubIndexHtml()
+  })
+  chokidar.watch([r('src/manifest.ts'), r('package.json')]).on('change', () => {
+    writeManifest()
+  })
 }
